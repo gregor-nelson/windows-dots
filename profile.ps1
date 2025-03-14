@@ -1,8 +1,9 @@
+#region Prompt Customization
 function prompt {
     # Store the exit code of the last command
     $lastExitCode = $?
 
-    # Define colors
+    # Define colors using ANSI escape codes (from first profile)
     $red = "$([char]0x1b)[91m"
     $yellow = "$([char]0x1b)[93m"
     $green = "$([char]0x1b)[92m"
@@ -11,26 +12,25 @@ function prompt {
     $reset = "$([char]0x1b)[0m"
     $bold = "$([char]0x1b)[1m"
 
-    # Get username and computer name
+    # Get username and computer name (combined approaches)
     $username = $env:USERNAME
-    $computerName = $env:COMPUTERNAME
+    $computerName = [System.Net.Dns]::GetHostName()
 
-    # Get current path (replace home directory with ~)
-    $currentPath = $PWD.Path
-    if ($currentPath.ToLower().StartsWith($HOME.ToLower())) {
-        $currentPath = "~" + $currentPath.Substring($HOME.Length)
+    # Get current path with tilde replacement (merged logic)
+    $currentPath = (Get-Location).Path
+    $homeDir = $env:HOME ?? $env:USERPROFILE
+    if ($currentPath.ToLower().StartsWith($homeDir.ToLower())) {
+        $currentPath = "~" + $currentPath.Substring($homeDir.Length)
     }
 
-    # Build the prompt
-    $promptString = "$bold$red[$yellow$username$green@$blue$computerName $magenta$currentPath$red]$reset$bold$reset$ "
+    # Build the prompt string with enhanced formatting
+    $promptString = "$bold$red[$yellow$username$green@$blue$computerName $magenta$currentPath$red]$reset$bold$ $reset"
 
     return $promptString
 }
+#endregion Prompt Customization
 
 #region NerdFontIcons
-# Add this to your PowerShell profile for Nerd Font icons in ls command
-# Requires a Nerd Font in your terminal (https://www.nerdfonts.com/)
-
 function Get-NerdFontIcon {
     param (
         [Parameter(Mandatory=$true)]
@@ -50,17 +50,17 @@ function Get-NerdFontIcon {
     $isSystem = $Item.Attributes -band [System.IO.FileAttributes]::System
     
     # Special file types
-    if ($isSymLink) { return "" }               # LINK (ln)
+    if ($isSymLink) { return "" }
     if ($isDirectory) {
-        if ($isReadOnly) { return "" }          # OTHER_WRITABLE (ow)
-        return "" }                             # DIR (di)
-    if ($isExecutable) { return "" }            # EXEC (ex)
+        if ($isReadOnly) { return "" }
+        return "" }
+    if ($isExecutable) { return "" }
     
-    # Get lowercase filename and extension (with dot)
+    # Get lowercase filename and extension
     $extension = if ($Item.Extension) { $Item.Extension.ToLower() } else { "" }
     $fileName = $Item.Name.ToLower()
     
-    # Check for special filenames first
+    # Check for special filenames (keeping all patterns from original)
     switch -Regex ($fileName) {
         "^gruntfile\.(js|coffee|ls)$" { return "" }
         "^gulpfile\.(js|coffee|ls)$" { return "" }
@@ -93,8 +93,6 @@ function Get-NerdFontIcon {
         "^makefile$" { return "" }
         "^cmakelists\.txt$" { return "" }
         "^robots\.txt$" { return "ﮧ" }
-        
-        # Case sensitive versions
         "^Gruntfile\.(js|coffee|ls)$" { return "" }
         "^Gulpfile\.(js|coffee|ls)$" { return "" }
         "^Dropbox$" { return "" }
@@ -108,8 +106,6 @@ function Get-NerdFontIcon {
         "^Gemfile$" { return "" }
         "^Makefile$" { return "" }
         "^CMakeLists\.txt$" { return "" }
-        
-        # File pattern adaptations
         "jquery\.min\.js$" { return "" }
         "angular\.min\.js$" { return "" }
         "backbone\.min\.js$" { return "" }
@@ -120,9 +116,8 @@ function Get-NerdFontIcon {
         "^Vagrantfile$" { return "" }
     }
     
-    # File types by extension
+    # File types by extension (keeping all from original)
     switch ($extension) {
-        # Web/Frontend
         ".styl" { return "" }
         ".sass" { return "" }
         ".scss" { return "" }
@@ -137,8 +132,6 @@ function Get-NerdFontIcon {
         ".mdx" { return "" }
         ".markdown" { return "" }
         ".rmd" { return "" }
-        
-        # JavaScript/TypeScript/Data
         ".json" { return "" }
         ".webmanifest" { return "" }
         ".js" { return "" }
@@ -162,8 +155,6 @@ function Get-NerdFontIcon {
         ".toml" { return "" }
         ".bat" { return "" }
         ".mk" { return "" }
-        
-        # Images
         ".jpg" { return "" }
         ".jpeg" { return "" }
         ".bmp" { return "" }
@@ -171,8 +162,6 @@ function Get-NerdFontIcon {
         ".webp" { return "" }
         ".gif" { return "" }
         ".ico" { return "" }
-        
-        # Programming/Development
         ".twig" { return "" }
         ".cpp" { return "" }
         ".c++" { return "" }
@@ -250,8 +239,6 @@ function Get-NerdFontIcon {
         ".rproj" { return "鉶" }
         ".sol" { return "ﲹ" }
         ".pem" { return "" }
-        
-        # Archives
         ".tar" { return "" }
         ".tgz" { return "" }
         ".arc" { return "" }
@@ -298,8 +285,6 @@ function Get-NerdFontIcon {
         ".swm" { return "" }
         ".dwm" { return "" }
         ".esd" { return "" }
-        
-        # Media - Images
         ".mjpg" { return "" }
         ".mjpeg" { return "" }
         ".pbm" { return "" }
@@ -314,8 +299,6 @@ function Get-NerdFontIcon {
         ".svgz" { return "" }
         ".mng" { return "" }
         ".pcx" { return "" }
-        
-        # Media - Video
         ".mov" { return "" }
         ".mpg" { return "" }
         ".mpeg" { return "" }
@@ -346,8 +329,6 @@ function Get-NerdFontIcon {
         ".emf" { return "" }
         ".ogv" { return "" }
         ".ogx" { return "" }
-        
-        # Media - Audio
         ".aac" { return "" }
         ".au" { return "" }
         ".flac" { return "" }
@@ -364,11 +345,7 @@ function Get-NerdFontIcon {
         ".opus" { return "" }
         ".spx" { return "" }
         ".xspf" { return "" }
-        
-        # Other
         ".pdf" { return "" }
-        
-        # Default file icon
         default { return "" }
     }
 }
@@ -402,27 +379,17 @@ function Get-FileListingWithIcons {
     )
     
     begin {
-        # Store original foreground color
         $originalForeground = $Host.UI.RawUI.ForegroundColor
-        # Define column widths for consistent formatting
-        $modeWidth = 6  # For file attributes
-        $dateWidth = 19 # For date/time
-        $sizeWidth = 10 # For file size
+        $modeWidth = 6
+        $dateWidth = 19
+        $sizeWidth = 10
     }
     
     process {
         foreach ($p in $Path) {
             try {
-                # Get-ChildItem parameters
-                $params = @{
-                    Path = $p
-                }
-                
-                if ($Force) {
-                    $params.Force = $true
-                }
-                
-                # Add any additional arguments passed to the function
+                $params = @{ Path = $p }
+                if ($Force) { $params.Force = $true }
                 $PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -ne "Path" -and $_.Key -ne "Force" } | ForEach-Object {
                     $params[$_.Key] = $_.Value
                 }
@@ -431,8 +398,6 @@ function Get-FileListingWithIcons {
                 
                 foreach ($item in $items) {
                     $icon = Get-NerdFontIcon -Item $item
-                    
-                    # Build mode string (similar to Unix permissions)
                     $mode = ""
                     if ($item.PSIsContainer) { $mode += "d" } else { $mode += "-" }
                     if ($item.Attributes -band [System.IO.FileAttributes]::ReadOnly) { $mode += "r" } else { $mode += "-" }
@@ -440,25 +405,20 @@ function Get-FileListingWithIcons {
                     if ($item.Attributes -band [System.IO.FileAttributes]::System) { $mode += "s" } else { $mode += "-" }
                     if ($item.Attributes -band [System.IO.FileAttributes]::Archive) { $mode += "a" } else { $mode += "-" }
                     
-                    # Get last modified time
                     $lastWrite = $item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
-                    
-                    # Get file size (empty for directories)
                     $size = if ($item.PSIsContainer) { "" } else { Format-FileSize -Size $item.Length }
                     
-                    # Choose color based on file type
                     $color = switch -Regex ($item.Extension.ToLower()) {
-                        "\.(exe|bat|cmd|ps1|psm1|psd1)$" { "Green" }      # Executable
-                        "\.(zip|rar|7z|tar|gz|bz2)$" { "Red" }            # Archives
-                        "\.(jpg|png|gif|bmp|ico|svg|webp)$" { "Magenta" } # Images
-                        "\.(mp3|wav|ogg|flac|m4a)$" { "Yellow" }          # Audio
-                        "\.(mp4|avi|mkv|mov|wmv)$" { "Yellow" }           # Video
-                        "\.(doc|docx|xls|xlsx|ppt|pptx|pdf)$" { "Yellow" }# Documents
-                        "\.(js|ts|py|rb|java|c|cpp|go|rs)$" { "DarkYellow" } # Code
+                        "\.(exe|bat|cmd|ps1|psm1|psd1)$" { "Green" }
+                        "\.(zip|rar|7z|tar|gz|bz2)$" { "Red" }
+                        "\.(jpg|png|gif|bmp|ico|svg|webp)$" { "Magenta" }
+                        "\.(mp3|wav|ogg|flac|m4a)$" { "Yellow" }
+                        "\.(mp4|avi|mkv|mov|wmv)$" { "Yellow" }
+                        "\.(doc|docx|xls|xlsx|ppt|pptx|pdf)$" { "Yellow" }
+                        "\.(js|ts|py|rb|java|c|cpp|go|rs)$" { "DarkYellow" }
                         default { if ($item.PSIsContainer) { "Cyan" } else { "White" } }
                     }
                     
-                    # Output formatted line
                     Write-Host ("{0,-$modeWidth} " -f $mode) -NoNewline -ForegroundColor DarkGray
                     Write-Host ("{0,-$dateWidth} " -f $lastWrite) -NoNewline -ForegroundColor DarkGray
                     Write-Host ("{0,$sizeWidth} " -f $size) -NoNewline -ForegroundColor DarkGray
@@ -473,12 +433,35 @@ function Get-FileListingWithIcons {
     }
     
     end {
-        # Restore original foreground color
         $Host.UI.RawUI.ForegroundColor = $originalForeground
     }
 }
 
-# Create a new alias for ls
 Set-Alias -Name ls -Value Get-FileListingWithIcons -Option AllScope -Force
 #endregion NerdFontIcons
 
+#region File Utilities
+function Touch-File {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string[]]$Path
+    )
+    foreach ($file in $Path) {
+        if (Test-Path $file) {
+            (Get-Item $file).LastWriteTime = Get-Date
+        } else {
+            New-Item -ItemType File -Path $file -Force | Out-Null
+        }
+    }
+}
+
+Set-Alias -Name touch -Value Touch-File
+#endregion File Utilities
+
+#region SSH Connections
+function Connect-Watch { ssh -C debian@51.79.254.133 }
+Set-Alias -Name sshwatch -Value Connect-Watch
+
+function Connect-Pdf { ssh -C debian@51.178.139.7 }
+Set-Alias -Name sshpdf -Value Connect-Pdf
+#endregion SSH Connections
