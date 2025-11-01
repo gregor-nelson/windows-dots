@@ -1,32 +1,81 @@
 # ============================================================================
-# ZSH Configuration - Universal WSL Template
+# ZSH Configuration - Universal WSL Template with Dynamic Themes
 # ============================================================================
 
 export EDITOR=nvim
 autoload -U colors && colors
 
 # ----------------------------------------------------------------------------
-# Distro Icon Auto-Detection
+# Distro Icon & Theme Auto-Detection
 # ----------------------------------------------------------------------------
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
   case "${WSL_DISTRO_NAME:l}" in
-    *fedora*) DISTRO_ICON="󰮤" ;;
-    *ubuntu*) DISTRO_ICON="󰕈" ;;
-    *arch*)   DISTRO_ICON="󰣇" ;;
-    *kali*)   DISTRO_ICON="" ;;
-    *debian*) DISTRO_ICON="" ;;
-    *)        DISTRO_ICON="" ;;
+    *fedora*)
+      DISTRO_ICON="󰮤"
+      DISTRO_COLOR_PRIMARY="#294172"
+      DISTRO_COLOR_SECONDARY="#51a2da"
+      DISTRO_COLOR_ACCENT="#3c6eb4"
+      ;;
+    *ubuntu*)
+      DISTRO_ICON="󰕈"
+      DISTRO_COLOR_PRIMARY="#E95420"
+      DISTRO_COLOR_SECONDARY="#F4AA90"
+      DISTRO_COLOR_ACCENT="#DD4814"
+      ;;
+    *arch*)
+      DISTRO_ICON="󰣇"
+      DISTRO_COLOR_PRIMARY="#1793D1"
+      DISTRO_COLOR_SECONDARY="#7CBFE4"
+      DISTRO_COLOR_ACCENT="#0C6C9E"
+      ;;
+    *kali*)
+      DISTRO_ICON=""
+      DISTRO_COLOR_PRIMARY="#367BF0"
+      DISTRO_COLOR_SECONDARY="#557C95"
+      DISTRO_COLOR_ACCENT="#00D9FF"
+      ;;
+    *debian*)
+      DISTRO_ICON=""
+      DISTRO_COLOR_PRIMARY="#D70A53"
+      DISTRO_COLOR_SECONDARY="#FFC0D3"
+      DISTRO_COLOR_ACCENT="#A80030"
+      ;;
+    *)
+      DISTRO_ICON=""
+      DISTRO_COLOR_PRIMARY="#4A5568"
+      DISTRO_COLOR_SECONDARY="#A0AEC0"
+      DISTRO_COLOR_ACCENT="#2D3748"
+      ;;
   esac
 else
-  DISTRO_ICON=""
+  DISTRO_ICON=""
+  DISTRO_COLOR_PRIMARY="#4A5568"
+  DISTRO_COLOR_SECONDARY="#A0AEC0"
+  DISTRO_COLOR_ACCENT="#2D3748"
 fi
 
 # ----------------------------------------------------------------------------
-# Git-Aware Prompt
+# Dynamic Prompt Elements - Command Timing
 # ----------------------------------------------------------------------------
-autoload -Uz vcs_info
+typeset -g command_start_time
+typeset -g command_exec_time
+
+preexec() {
+  command_start_time=$SECONDS
+  echo -ne '\e[5 q'
+}
 
 precmd() {
+  # Calculate command execution time
+  if [[ -n $command_start_time ]]; then
+    command_exec_time=$((SECONDS - command_start_time))
+    unset command_start_time
+  fi
+
+  # Capture exit status FIRST before any other commands
+  LAST_EXIT_CODE=$?
+
+  # Git info
   vcs_info
 
   if [[ -n ${vcs_info_msg_0_} ]]; then
@@ -41,6 +90,11 @@ precmd() {
     git_extra_info=""
   fi
 }
+
+# ----------------------------------------------------------------------------
+# Git-Aware Prompt
+# ----------------------------------------------------------------------------
+autoload -Uz vcs_info
 
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:*' check-for-changes true
@@ -57,11 +111,69 @@ zstyle ':vcs_info:git*+set-message:*' hooks git-untracked
   fi
 }
 
-PS1='%B%F{#294172}[%F{white}${DISTRO_ICON}%f %F{#51a2da}%n %F{#51a2da}%2~%F{#294172}]${vcs_info_msg_0_}${git_extra_info}%f$%b '
+# ----------------------------------------------------------------------------
+# Dynamic Prompt Components
+# ----------------------------------------------------------------------------
+# Exit status indicator
+prompt_exit_status() {
+  if [[ $LAST_EXIT_CODE -ne 0 ]]; then
+    echo "%F{red}✗[$LAST_EXIT_CODE]%f "
+  fi
+}
+
+# Background jobs indicator
+prompt_jobs() {
+  local job_count=$(jobs | wc -l)
+  if [[ $job_count -gt 0 ]]; then
+    echo " %F{cyan}⚙${job_count}%f"
+  fi
+}
+
+# Command execution time (only show if > 5 seconds)
+prompt_exec_time() {
+  if [[ -n $command_exec_time && $command_exec_time -gt 5 ]]; then
+    local hours=$((command_exec_time / 3600))
+    local minutes=$(((command_exec_time % 3600) / 60))
+    local seconds=$((command_exec_time % 60))
+
+    local time_str=""
+    [[ $hours -gt 0 ]] && time_str="${hours}h"
+    [[ $minutes -gt 0 ]] && time_str="${time_str}${minutes}m"
+    time_str="${time_str}${seconds}s"
+
+    echo " %F{magenta}⏱${time_str}%f"
+  fi
+}
+
+# Virtual environment indicator
+prompt_venv() {
+  local venv_info=""
+  # Python virtual environment
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    venv_info="%F{blue}($(basename $VIRTUAL_ENV))%f "
+  fi
+  # Node.js (if using nvm or similar)
+  if [[ -n "$NODE_VIRTUAL_ENV" ]]; then
+    venv_info="${venv_info}%F{green}[node]%f "
+  fi
+  echo "$venv_info"
+}
+
+# ----------------------------------------------------------------------------
+# Assemble the Prompt
+# ----------------------------------------------------------------------------
+setopt PROMPT_SUBST
+PS1='$(prompt_venv)%B%F{$DISTRO_COLOR_PRIMARY}[%F{white}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}]${vcs_info_msg_0_}${git_extra_info}%f $(prompt_exit_status)$(prompt_jobs)$(prompt_exec_time)$%b '
+
+# Right prompt with timestamp (optional - uncomment to enable)
+# RPROMPT='%F{240}%*%f'
 
 # ----------------------------------------------------------------------------
 # History
 # ----------------------------------------------------------------------------
+# Auto-create history directory if it doesn't exist
+[[ ! -d ~/.cache/zsh ]] && mkdir -p ~/.cache/zsh
+
 HISTSIZE=10000
 SAVEHIST=10000
 HISTFILE=~/.cache/zsh/history
@@ -124,7 +236,6 @@ zle-line-init() {
 zle -N zle-line-init
 
 echo -ne '\e[5 q'
-preexec() { echo -ne '\e[5 q' ;}
 
 autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
@@ -160,7 +271,6 @@ setopt AUTO_LIST
 setopt MAGIC_EQUAL_SUBST
 setopt LONG_LIST_JOBS
 setopt PRINT_EIGHT_BIT
-setopt PROMPT_SUBST
 setopt TRANSIENT_RPROMPT
 setopt IGNORE_EOF
 
