@@ -12,36 +12,42 @@ if [[ -n "$WSL_DISTRO_NAME" ]]; then
   case "${WSL_DISTRO_NAME:l}" in
     *fedora*)
       DISTRO_ICON="󰮤"
-      DISTRO_COLOR_PRIMARY="#294172"
-      DISTRO_COLOR_SECONDARY="#51a2da"
-      DISTRO_COLOR_ACCENT="#3c6eb4"
+      DISTRO_ICON_COLOR="#FFFFFF"
+      DISTRO_COLOR_PRIMARY="#072C61"
+      DISTRO_COLOR_SECONDARY="#0B57A4"
+      DISTRO_COLOR_ACCENT="#51A2DA"
       ;;
     *ubuntu*)
       DISTRO_ICON="󰕈"
-      DISTRO_COLOR_PRIMARY="#E95420"
-      DISTRO_COLOR_SECONDARY="#F4AA90"
-      DISTRO_COLOR_ACCENT="#DD4814"
+      DISTRO_ICON_COLOR="#FFFFFF"
+      DISTRO_COLOR_PRIMARY="#DD4814"
+      DISTRO_COLOR_SECONDARY="#E95420"
+      DISTRO_COLOR_ACCENT="#F4AA90"
       ;;
     *arch*)
       DISTRO_ICON="󰣇"
-      DISTRO_COLOR_PRIMARY="#1793D1"
-      DISTRO_COLOR_SECONDARY="#7CBFE4"
-      DISTRO_COLOR_ACCENT="#0C6C9E"
+      DISTRO_ICON_COLOR="#FFFFFF"
+      DISTRO_COLOR_PRIMARY="#333333"
+      DISTRO_COLOR_SECONDARY="#1793D1"
+      DISTRO_COLOR_ACCENT="#7CBFE4"
       ;;
     *kali*)
       DISTRO_ICON=""
-      DISTRO_COLOR_PRIMARY="#367BF0"
-      DISTRO_COLOR_SECONDARY="#557C95"
-      DISTRO_COLOR_ACCENT="#00D9FF"
+      DISTRO_ICON_COLOR="#E6A972"
+      DISTRO_COLOR_PRIMARY="#143162"
+      DISTRO_COLOR_SECONDARY="#23BAC2"
+      DISTRO_COLOR_ACCENT="#4DD4DC"
       ;;
     *debian*)
       DISTRO_ICON=""
-      DISTRO_COLOR_PRIMARY="#D70A53"
-      DISTRO_COLOR_SECONDARY="#FFC0D3"
-      DISTRO_COLOR_ACCENT="#A80030"
+      DISTRO_ICON_COLOR="#FFFFFF"
+      DISTRO_COLOR_PRIMARY="#A80030"
+      DISTRO_COLOR_SECONDARY="#D70A53"
+      DISTRO_COLOR_ACCENT="#E85C8A"
       ;;
     *)
       DISTRO_ICON=""
+      DISTRO_ICON_COLOR="#FFFFFF"
       DISTRO_COLOR_PRIMARY="#4A5568"
       DISTRO_COLOR_SECONDARY="#A0AEC0"
       DISTRO_COLOR_ACCENT="#2D3748"
@@ -49,6 +55,7 @@ if [[ -n "$WSL_DISTRO_NAME" ]]; then
   esac
 else
   DISTRO_ICON=""
+  DISTRO_ICON_COLOR="#FFFFFF"
   DISTRO_COLOR_PRIMARY="#4A5568"
   DISTRO_COLOR_SECONDARY="#A0AEC0"
   DISTRO_COLOR_ACCENT="#2D3748"
@@ -163,7 +170,7 @@ prompt_venv() {
 # Assemble the Prompt
 # ----------------------------------------------------------------------------
 setopt PROMPT_SUBST
-PS1='$(prompt_venv)%B%F{$DISTRO_COLOR_PRIMARY}[%F{white}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}]${vcs_info_msg_0_}${git_extra_info}%f $(prompt_exit_status)$(prompt_jobs)$(prompt_exec_time)$%b '
+PS1='$(prompt_venv)%B%F{$DISTRO_COLOR_PRIMARY}[%F{$DISTRO_ICON_COLOR}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}]${vcs_info_msg_0_}${git_extra_info}%f $(prompt_exit_status)$(prompt_jobs)$(prompt_exec_time)$%b '
 
 # Right prompt with timestamp (optional - uncomment to enable)
 # RPROMPT='%F{240}%*%f'
