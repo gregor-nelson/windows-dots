@@ -13,9 +13,9 @@ if [[ -n "$WSL_DISTRO_NAME" ]]; then
     *fedora*)
       DISTRO_ICON="󰮤"
       DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#CC0000"
-      DISTRO_COLOR_SECONDARY="#EE0000"
-      DISTRO_COLOR_ACCENT="#FF6B6B"
+      DISTRO_COLOR_PRIMARY="#072C61"
+      DISTRO_COLOR_SECONDARY="#0B57A4"
+      DISTRO_COLOR_ACCENT="#51A2DA"
       ;;
     *ubuntu*)
       DISTRO_ICON="󰕈"
@@ -41,9 +41,9 @@ if [[ -n "$WSL_DISTRO_NAME" ]]; then
     *debian*)
       DISTRO_ICON=""
       DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#D70751"
-      DISTRO_COLOR_SECONDARY="#E0487E"
-      DISTRO_COLOR_ACCENT="#FF80AB"
+      DISTRO_COLOR_PRIMARY="#A80030"
+      DISTRO_COLOR_SECONDARY="#D70A53"
+      DISTRO_COLOR_ACCENT="#E85C8A"
       ;;
     *)
       DISTRO_ICON=""
@@ -81,41 +81,6 @@ precmd() {
 
   # Capture exit status FIRST before any other commands
   LAST_EXIT_CODE=$?
-
-  # Git info
-  vcs_info
-
-  if [[ -n ${vcs_info_msg_0_} ]]; then
-    local ahead behind
-    ahead=$(git rev-list --count @{upstream}..HEAD 2>/dev/null)
-    behind=$(git rev-list --count HEAD..@{upstream} 2>/dev/null)
-
-    git_extra_info=""
-    [[ $ahead -gt 0 ]] && git_extra_info+="%F{cyan}↑${ahead}%f"
-    [[ $behind -gt 0 ]] && git_extra_info+="%F{magenta}↓${behind}%f"
-  else
-    git_extra_info=""
-  fi
-}
-
-# ----------------------------------------------------------------------------
-# Git-Aware Prompt
-# ----------------------------------------------------------------------------
-autoload -Uz vcs_info
-
-zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:*' check-for-changes true
-zstyle ':vcs_info:*' unstagedstr '%F{red}●%f'
-zstyle ':vcs_info:*' stagedstr '%F{yellow}●%f'
-zstyle ':vcs_info:git:*' formats ' %F{yellow}(%b%f%u%c%m%F{yellow})%f'
-zstyle ':vcs_info:git:*' actionformats ' %F{yellow}(%b|%a%f%u%c%m%F{yellow})%f'
-
-zstyle ':vcs_info:git*+set-message:*' hooks git-untracked
-+vi-git-untracked() {
-  if [[ $(git rev-parse --is-inside-work-tree 2>/dev/null) == 'true' ]] && \
-     git status --porcelain | grep -q '^?? '; then
-    hook_com[misc]='%F{blue}?%f'
-  fi
 }
 
 # ----------------------------------------------------------------------------
@@ -125,14 +90,6 @@ zstyle ':vcs_info:git*+set-message:*' hooks git-untracked
 prompt_exit_status() {
   if [[ $LAST_EXIT_CODE -ne 0 ]]; then
     echo "%F{red}✗[$LAST_EXIT_CODE]%f "
-  fi
-}
-
-# Background jobs indicator
-prompt_jobs() {
-  local job_count=$(jobs | wc -l)
-  if [[ $job_count -gt 0 ]]; then
-    echo " %F{cyan}⚙${job_count}%f"
   fi
 }
 
@@ -148,7 +105,7 @@ prompt_exec_time() {
     [[ $minutes -gt 0 ]] && time_str="${time_str}${minutes}m"
     time_str="${time_str}${seconds}s"
 
-    echo " %F{magenta}⏱${time_str}%f"
+    echo " %F{magenta}${time_str}%f"
   fi
 }
 
@@ -170,7 +127,7 @@ prompt_venv() {
 # Assemble the Prompt
 # ----------------------------------------------------------------------------
 setopt PROMPT_SUBST
-PS1='$(prompt_venv)%B%F{$DISTRO_COLOR_PRIMARY}[%F{$DISTRO_ICON_COLOR}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}]${vcs_info_msg_0_}${git_extra_info}%f $(prompt_exit_status)$(prompt_jobs)$(prompt_exec_time)$%b '
+PS1='$(prompt_venv)%B%F{$DISTRO_COLOR_PRIMARY}[%F{$DISTRO_ICON_COLOR}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}]%f $(prompt_exit_status)$(prompt_exec_time)$%b '
 
 # Right prompt with timestamp (optional - uncomment to enable)
 # RPROMPT='%F{240}%*%f'
@@ -346,4 +303,45 @@ export LS_COLORS="${LS_COLORS}:ow=01;34:tw=01;34"
 # ----------------------------------------------------------------------------
 # Aliases
 # ----------------------------------------------------------------------------
-alias clear='clear'
+# Directory navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+# ls aliases
+alias ls='ls --color=auto'
+alias ll='ls -lah'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Grep with color
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# Safety nets
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Shortcuts
+alias c='clear'
+alias h='history'
+alias df='df -h'
+alias du='du -h'
+alias free='free -h'
+
+# Git shortcuts (if you use git from command line)
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline --graph --decorate'
+alias gd='git diff'
+
+# Misc
+alias reload='source ~/.zshrc'
+alias zshconfig='$EDITOR ~/.zshrc'
+
