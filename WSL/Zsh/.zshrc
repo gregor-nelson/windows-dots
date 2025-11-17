@@ -61,73 +61,11 @@ else
   DISTRO_COLOR_ACCENT="#2D3748"
 fi
 
-# ----------------------------------------------------------------------------
-# Dynamic Prompt Elements - Command Timing
-# ----------------------------------------------------------------------------
-typeset -g command_start_time
-typeset -g command_exec_time
 
-preexec() {
-  command_start_time=$SECONDS
-  echo -ne '\e[5 q'
-}
-
-precmd() {
-  # Calculate command execution time
-  if [[ -n $command_start_time ]]; then
-    command_exec_time=$((SECONDS - command_start_time))
-    unset command_start_time
-  fi
-
-  # Capture exit status FIRST before any other commands
-  LAST_EXIT_CODE=$?
-}
-
-# ----------------------------------------------------------------------------
-# Dynamic Prompt Components
-# ----------------------------------------------------------------------------
-# Exit status indicator
-prompt_exit_status() {
-  if [[ $LAST_EXIT_CODE -ne 0 ]]; then
-    echo "%F{red}✗[$LAST_EXIT_CODE]%f "
-  fi
-}
-
-# Command execution time (only show if > 5 seconds)
-prompt_exec_time() {
-  if [[ -n $command_exec_time && $command_exec_time -gt 5 ]]; then
-    local hours=$((command_exec_time / 3600))
-    local minutes=$(((command_exec_time % 3600) / 60))
-    local seconds=$((command_exec_time % 60))
-
-    local time_str=""
-    [[ $hours -gt 0 ]] && time_str="${hours}h"
-    [[ $minutes -gt 0 ]] && time_str="${time_str}${minutes}m"
-    time_str="${time_str}${seconds}s"
-
-    echo " %F{magenta}${time_str}%f"
-  fi
-}
-
-# Virtual environment indicator
-prompt_venv() {
-  local venv_info=""
-  # Python virtual environment
-  if [[ -n "$VIRTUAL_ENV" ]]; then
-    venv_info="%F{blue}($(basename $VIRTUAL_ENV))%f "
-  fi
-  # Node.js (if using nvm or similar)
-  if [[ -n "$NODE_VIRTUAL_ENV" ]]; then
-    venv_info="${venv_info}%F{green}[node]%f "
-  fi
-  echo "$venv_info"
-}
-
-# ----------------------------------------------------------------------------
 # Assemble the Prompt
 # ----------------------------------------------------------------------------
 setopt PROMPT_SUBST
-PS1='$(prompt_venv)%B%F{$DISTRO_COLOR_PRIMARY}[%F{$DISTRO_ICON_COLOR}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}]%f $(prompt_exit_status)$(prompt_exec_time)$%b '
+PS1='%B%F{$DISTRO_COLOR_PRIMARY}[%F{$DISTRO_ICON_COLOR}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}] '
 
 # Right prompt with timestamp (optional - uncomment to enable)
 # RPROMPT='%F{240}%*%f'
@@ -172,39 +110,6 @@ setopt LIST_TYPES
 setopt REC_EXACT
 
 # ----------------------------------------------------------------------------
-# Vi Mode
-# ----------------------------------------------------------------------------
-bindkey -v
-export KEYTIMEOUT=1
-
-bindkey -M menuselect 'h' vi-backward-char
-bindkey -M menuselect 'k' vi-up-line-or-history
-bindkey -M menuselect 'l' vi-forward-char
-bindkey -M menuselect 'j' vi-down-line-or-history
-bindkey -v '^?' backward-delete-char
-
-function zle-keymap-select {
-  if [[ ${KEYMAP} == vicmd ]] || [[ $1 = 'block' ]]; then
-    echo -ne '\e[1 q'
-  elif [[ ${KEYMAP} == main ]] || [[ ${KEYMAP} == viins ]] ||
-       [[ ${KEYMAP} = '' ]] || [[ $1 = 'beam' ]]; then
-    echo -ne '\e[5 q'
-  fi
-}
-zle -N zle-keymap-select
-
-zle-line-init() {
-  zle -K viins
-  echo -ne "\e[5 q"
-}
-zle -N zle-line-init
-
-echo -ne '\e[5 q'
-
-autoload edit-command-line; zle -N edit-command-line
-bindkey '^e' edit-command-line
-
-# ----------------------------------------------------------------------------
 # Directory Navigation
 # ----------------------------------------------------------------------------
 setopt AUTO_CD
@@ -246,31 +151,6 @@ if [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
 elif [[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
   source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
-
-# ----------------------------------------------------------------------------
-# FZF
-# ----------------------------------------------------------------------------
-FZF_PATHS=(
-  "/usr/share/fzf/shell/key-bindings.zsh"
-  "/usr/share/doc/fzf/examples/key-bindings.zsh"
-  "/usr/share/fzf/key-bindings.zsh"
-)
-
-for fzf_path in $FZF_PATHS; do
-  if [[ -f "$fzf_path" ]]; then
-    source "$fzf_path"
-
-    export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --color=fg:#abb2bf,bg:#282c34,hl:#61afef,fg+:#ffffff,bg+:#3e4451,hl+:#61afef,info:#e5c07b,prompt:#61afef,pointer:#c678dd,marker:#98c379,spinner:#61afef,header:#98c379'
-    export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {} 2>/dev/null || cat {}'"
-    export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:wrap"
-    export FZF_ALT_C_OPTS="--preview 'ls -la {}'"
-
-    bindkey '^F' fzf-file-widget
-    bindkey '^H' fzf-history-widget
-    bindkey '^D' fzf-cd-widget
-    break
-  fi
-done
 
 # ----------------------------------------------------------------------------
 # WSL Functions
@@ -324,22 +204,6 @@ alias egrep='egrep --color=auto'
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
-
-# Shortcuts
-alias c='clear'
-alias h='history'
-alias df='df -h'
-alias du='du -h'
-alias free='free -h'
-
-# Git shortcuts (if you use git from command line)
-alias g='git'
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git log --oneline --graph --decorate'
-alias gd='git diff'
 
 # Misc
 alias reload='source ~/.zshrc'
