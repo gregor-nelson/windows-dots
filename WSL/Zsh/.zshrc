@@ -11,61 +11,61 @@ autoload -U colors && colors
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
   case "${WSL_DISTRO_NAME:l}" in
     *fedora*)
-      DISTRO_ICON="󰮤"
-      DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#072C61"
-      DISTRO_COLOR_SECONDARY="#0B57A4"
-      DISTRO_COLOR_ACCENT="#51A2DA"
+      BRACKET_COLOR="#6d8dad"
+      USER_COLOR="#61afef"
+      AT_COLOR="#abb2bf"
+      HOST_COLOR="#545862"
+      PATH_COLOR="#abb2bf"
       ;;
     *ubuntu*)
-      DISTRO_ICON="󰕈"
-      DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#DD4814"
-      DISTRO_COLOR_SECONDARY="#E95420"
-      DISTRO_COLOR_ACCENT="#F4AA90"
+      BRACKET_COLOR="#caaa6a"
+      USER_COLOR="#EBCB8B"
+      AT_COLOR="#abb2bf"
+      HOST_COLOR="#caaa6a"
+      PATH_COLOR="#EBCB8B"
       ;;
     *arch*)
-      DISTRO_ICON="󰣇"
-      DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#333333"
-      DISTRO_COLOR_SECONDARY="#1793D1"
-      DISTRO_COLOR_ACCENT="#7CBFE4"
+      BRACKET_COLOR="#6d8dad"
+      USER_COLOR="#61afef"
+      AT_COLOR="#abb2bf"
+      HOST_COLOR="#545862"
+      PATH_COLOR="#abb2bf"
       ;;
     *kali*)
-      DISTRO_ICON=""
-      DISTRO_ICON_COLOR="#E6A972"
-      DISTRO_COLOR_PRIMARY="#143162"
-      DISTRO_COLOR_SECONDARY="#23BAC2"
-      DISTRO_COLOR_ACCENT="#4DD4DC"
+      BRACKET_COLOR="#7EC7A2"
+      USER_COLOR="#61afef"
+      AT_COLOR="#abb2bf"
+      HOST_COLOR="#7EC7A2"
+      PATH_COLOR="#EBCB8B"
       ;;
     *debian*)
-      DISTRO_ICON=""
-      DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#A80030"
-      DISTRO_COLOR_SECONDARY="#D70A53"
-      DISTRO_COLOR_ACCENT="#E85C8A"
+      BRACKET_COLOR="#e06c75"
+      USER_COLOR="#c678dd"
+      AT_COLOR="#abb2bf"
+      HOST_COLOR="#e06c75"
+      PATH_COLOR="#c678dd"
       ;;
     *)
-      DISTRO_ICON=""
-      DISTRO_ICON_COLOR="#FFFFFF"
-      DISTRO_COLOR_PRIMARY="#4A5568"
-      DISTRO_COLOR_SECONDARY="#A0AEC0"
-      DISTRO_COLOR_ACCENT="#2D3748"
+      BRACKET_COLOR="#545862"
+      USER_COLOR="#abb2bf"
+      AT_COLOR="#abb2bf"
+      HOST_COLOR="#545862"
+      PATH_COLOR="#abb2bf"
       ;;
   esac
 else
-  DISTRO_ICON=""
-  DISTRO_ICON_COLOR="#FFFFFF"
-  DISTRO_COLOR_PRIMARY="#4A5568"
-  DISTRO_COLOR_SECONDARY="#A0AEC0"
-  DISTRO_COLOR_ACCENT="#2D3748"
+  BRACKET_COLOR="#545862"
+  USER_COLOR="#abb2bf"
+  AT_COLOR="#abb2bf"
+  HOST_COLOR="#545862"
+  PATH_COLOR="#abb2bf"
 fi
 
 
 # Assemble the Prompt
 # ----------------------------------------------------------------------------
 setopt PROMPT_SUBST
-PS1='%B%F{$DISTRO_COLOR_PRIMARY}[%F{$DISTRO_ICON_COLOR}${DISTRO_ICON}%f %F{$DISTRO_COLOR_SECONDARY}%n %F{$DISTRO_COLOR_ACCENT}%2~%F{$DISTRO_COLOR_PRIMARY}] '
+PS1='%B%F{$BRACKET_COLOR}[%F{$USER_COLOR}%n%F{$AT_COLOR}@%F{$HOST_COLOR}%M %F{$PATH_COLOR}%~%F{$BRACKET_COLOR}]%{$reset_color%}$%b '
 
 # Right prompt with timestamp (optional - uncomment to enable)
 # RPROMPT='%F{240}%*%f'
